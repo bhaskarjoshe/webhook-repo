@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 
 from app.extensions import init_mongo
@@ -7,7 +9,10 @@ from app.webhook.routes import webhook
 # Creating our flask app
 def create_app():
 
-    app = Flask(__name__)
+    template_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")
+    static_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "static")
+
+    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
     init_mongo(app)
 

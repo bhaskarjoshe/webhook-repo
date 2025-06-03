@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, render_template, request
 
 from app.extensions import mongo
 
@@ -11,7 +11,7 @@ def get_timestamp():
     """
     Helper function to get current time stamp
     """
-    return datetime.now(timezone.utc).strftime("%d %B %Y - %I:%M %p UTC")
+    return datetime.now(timezone.utc).strftime("%d %B %Y - %I:%M:%S %p UTC")
 
 
 def handle_push_event(payload):
@@ -57,8 +57,11 @@ def store_event(data):
     mongo.db.github_webhooks.insert_one(data)
 
 
-@webhook.route("/receiver", methods=["POST"])
+@webhook.route("/receiver", methods=["GET", "POST"])
 def receiver():
+    if request.method == "GET":
+        return render_template("index.html")
+
     if request.headers.get("Content-Type") != "application/json":
         return jsonify({"error": "unsupported Content-Type"}), 400
 
@@ -78,3 +81,14 @@ def receiver():
 
     store_event(event_data)
     return jsonify({"status": "success"}), 200
+
+
+@webhook.route("/events", methods=["GET"])
+def get_events():
+    """
+    Retrives all github events from mongo sorted by timestamp
+    """
+    events = list(mongo.db.github_webhooks.find().sort("timestamp", -1))
+    for event in events:
+        event["_id"] = str(event["_id"])
+    return jsonify(events)
