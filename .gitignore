@@ -3,3 +3,5 @@ __pycache__
 .env
 venv
 .venv
+.history
+test_mongo_connection.py

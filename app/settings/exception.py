@@ -1,0 +1,2 @@
+class InvalidGithubEvent(Exception):
+    pass
