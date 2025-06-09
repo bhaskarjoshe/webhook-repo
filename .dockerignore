@@ -1,0 +1,5 @@
+.env
+.history
+.venv
+.vscode
+test_mongo_connection.py
