@@ -7,6 +7,7 @@ from flask import render_template
 from flask import request
 
 from app.extensions import mongo
+from app.webhook.tasks import async_store_event
 
 from ..settings.exception import InvalidGithubEvent
 from ..settings.logger import logger
@@ -106,8 +107,11 @@ def receiver():
         else:
             raise InvalidGithubEvent(f"Unsupported event type: {event_type}")
 
-        store_event(event_data)
-        return jsonify({"status": "success"}), 200
+        # store_event(event_data)
+        # return jsonify({"status": "success"}), 200
+
+        task = async_store_event.delay(event_data)
+        return jsonify({"status": "queued", "task_id": task.id}), 202
 
     except InvalidGithubEvent as e:
         logger.error("InvalidGitHubEvent: %s", e)
@@ -136,8 +140,8 @@ def get_events():
                 event_time = event_time.replace(tzinfo=timezone.utc)
 
             diff = utc_now - event_time
-            if diff.total_seconds() > 15:
-                break
+            # if diff.total_seconds() > 15:
+            #     break
             last_15_seconds_event.append(event)
 
         return jsonify(last_15_seconds_event)

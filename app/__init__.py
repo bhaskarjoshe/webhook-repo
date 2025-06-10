@@ -2,6 +2,7 @@ import os
 
 from flask import Flask
 
+from app.celery_app import init_celery
 from app.extensions import init_mongo
 from app.webhook.routes import webhook
 
@@ -14,7 +15,9 @@ def create_app():
 
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
+    # Initialize extensions
     init_mongo(app)
+    init_celery(app)
 
     # registering all the blueprints
 
